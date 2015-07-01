@@ -23,10 +23,10 @@ Example output:
 <?xml version="1.0" encoding="UTF-8"?>
 <rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
   <channel>
-    <title><![CDATA[PTT - drama-ticket]]></title>
-    <description><![CDATA[PTT - drama-ticket]]></description>
+    <title><![CDATA[drama-ticket]]></title>
+    <description><![CDATA[PTT: drama-ticket]]></description>
     <link>https://www.ptt.cc/bbs/drama-ticket/index.html</link>
-    <generator>ptt-to-rss</generator>
+    <generator>PttRSS</generator>
     <lastBuildDate>Wed, 01 Jul 2015 16:12:40 GMT</lastBuildDate>
     <pubDate>Wed, 01 Jul 2015 16:12:40 GMT</pubDate>
     <item>
