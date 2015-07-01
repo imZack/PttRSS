@@ -3,6 +3,10 @@ var cheerio = require('cheerio');
 var debug = require('debug')('rss:ptt');
 var baseUrl = 'https://www.ptt.cc';
 var prevCss = '#action-bar-container > div > div.btn-group.pull-right > a:nth-child(2)';
+var jar = request.jar();
+var cookie = request.cookie('over18=1');
+jar.setCookie(cookie, 'https://www.ptt.cc');
+request = request.defaults({jar: jar})
 
 function PTT(link, rows, cb) {
   if (arguments.length < 3) {
@@ -35,6 +39,11 @@ function PTT(link, rows, cb) {
 
         if (rows.length < 50) {
           var nextPage = baseUrl + $(prevCss).attr('href');
+          if (!nextPage) {
+            debug('no next page');
+            return cb(null, rows);
+          }
+
           PTT(nextPage, rows, cb);
           return;
         }
