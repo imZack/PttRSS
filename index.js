@@ -1,5 +1,6 @@
 var debug = require('debug')('rss:index');
 var express = require('express');
+var morgan = require('morgan');
 var LRU = require('lru-cache');
 var PTT = require('./ptt');
 var RSS = require('rss');
@@ -8,6 +9,8 @@ var cache = LRU({
   max: 50,
   maxAge: 1000 * 60 * 5
 });
+
+app.use(morgan(':req[X-Real-IP] - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'));
 
 app
   .get('/:board\.xml', function(req, res, next) {
