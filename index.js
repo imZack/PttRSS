@@ -41,6 +41,7 @@ app
 
     PTT(siteUrl, function(err, rows) {
       if (err) throw err;
+      if (!rows) throw Error('Fetch failed');
 
       rows.forEach(function(row) {
         feed.item(row);
