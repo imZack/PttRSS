@@ -1,0 +1,32 @@
+{
+  "name": "PttRSS",
+  "version": "0.0.1",
+  "description": "Self-hosted Ptt RSS service",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imZack/PttRSS.git"
+  },
+  "keywords": [
+    "ptt",
+    "rss"
+  ],
+  "author": "YuLun Shih",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/imZack/PttRSS/issues"
+  },
+  "homepage": "https://github.com/imZack/PttRSS#readme",
+  "dependencies": {
+    "cheerio": "^0.19.0",
+    "debug": "^2.2.0",
+    "express": "^4.13.0",
+    "lru-cache": "^2.6.5",
+    "morgan": "^1.6.0",
+    "request": "^2.58.0",
+    "rss": "^1.1.1"
+  }
+}
