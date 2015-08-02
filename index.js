@@ -14,7 +14,10 @@ app.use(morgan(':req[X-Real-IP] - :remote-user [:date[clf]] ":method :url HTTP/:
 
 app
   .get('/:board\.xml', function(req, res, next) {
-    if (!req.params.board) throw Error('Invaild Parameters');
+    if (!req.params.board) {
+      return next(Error('Invaild Parameters'));
+    }
+
     var board = req.params.board;
     var siteUrl = 'https://www.ptt.cc/bbs/' + board + '/index.html';
     var obj = cache.get(board);
@@ -40,8 +43,13 @@ app
     });
 
     PTT(siteUrl, function(err, rows) {
-      if (err) throw err;
-      if (!rows) throw Error('Fetch failed');
+      if (err) {
+        return next(err);
+      }
+
+      if (!rows) {
+        return next(Error('Fetch failed'));
+      }
 
       rows.forEach(function(row) {
         feed.item(row);
