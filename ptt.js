@@ -32,8 +32,7 @@ function PTT(link, rows, cb) {
             return;
           }
 
-          row.date =  Date.parse(new Date().getFullYear() + '/' +
-            row.date.substr(1, row.date.length));
+          row.date = Date.parse(new Date().getFullYear() + '/' + row.date);
           rows.push(row);
         });
 
