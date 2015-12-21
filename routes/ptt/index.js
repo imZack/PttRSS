@@ -38,9 +38,15 @@ function generateRSS(data) {
   });
 
   articles = data.articles;
+  // filter by title keywords
   if (data.titleKeywords && data.titleKeywords.length > 0) {
     articles = filterArticles(data.articles, data.titleKeywords);
   }
+
+  // filter by push counts
+  articles = articles.filter(function(article) {
+    return article.push > data.push;
+  });
 
   articles.forEach(function(row) {
     feed.item(row);
@@ -57,6 +63,7 @@ router
 
     var board = req.params.board;
     var siteUrl = 'https://www.ptt.cc/bbs/' + board + '/index.html';
+    var push = req.query.push || -99;
     var titleKeywords = req.query.title || [];
     if (!Array.isArray(titleKeywords)) {
       titleKeywords = [titleKeywords];
@@ -75,7 +82,8 @@ router
           siteUrl: siteUrl,
           board: board,
           articles: obj.articles,
-          titleKeywords: titleKeywords
+          titleKeywords: titleKeywords,
+          push: push
         });
 
         return res.send(feed.xml());

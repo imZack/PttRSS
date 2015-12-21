@@ -6,7 +6,7 @@ var prevCss = '#action-bar-container > div > div.btn-group.pull-right > a:nth-ch
 var jar = request.jar();
 var cookie = request.cookie('over18=1');
 jar.setCookie(cookie, 'https://www.ptt.cc');
-request = request.defaults({jar: jar})
+request = request.defaults({jar: jar});
 
 function PTT(link, rows, cb) {
   if (arguments.length < 3) {
@@ -21,10 +21,23 @@ function PTT(link, rows, cb) {
       $('#main-container > div.r-list-container.bbs-screen > div')
         .each(function(i, elem) {
           var elem = $(elem);
+
+          var push = elem.children('div.nrec').text();
+          if (push === '') {
+            push = 0;
+          } else if (push === '爆') {
+            push = 100;
+          } else if (push[0] === 'X') {
+            push = -(+push.substr(1, 1));
+          } else {
+            push = +push;
+          }
+
           var row = {
             title: elem.children('div.title').children('a').text(),
             date: elem.children('div.meta').children('div.date').text(),
             author: elem.children('div.meta').children('div.author').text(),
+            push: push,
             url: baseUrl +
                  elem.children('div.title').children('a').attr('href')
           };
