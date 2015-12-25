@@ -111,7 +111,8 @@ router
         siteUrl: siteUrl,
         board: board,
         articles: rows,
-        titleKeywords: titleKeywords
+        titleKeywords: titleKeywords,
+        push: push
       });
 
       res.set('Content-Type', 'text/xml');
