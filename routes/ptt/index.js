@@ -61,7 +61,7 @@ router
       return next(Error('Invaild Parameters'));
     }
 
-    var board = req.params.board;
+    var board = req.params.board.toLowerCase();
     var siteUrl = 'https://www.ptt.cc/bbs/' + board + '/index.html';
     var push = req.query.push || -99;
     var titleKeywords = req.query.title || [];
