@@ -1,13 +1,15 @@
+'use strict';
+
 var debug = require('debug')('rss:ptt:index');
 var express = require('express');
 var LRU = require('lru-cache');
-var PTTCrawler = require('./crawler');
 var RSS = require('rss');
 var router = express.Router();
 var cache = LRU({
   max: 50,
-  maxAge: 1000 * 60 * 5
+  maxAge: 1000 * 60 * 5,
 });
+var getArticlesFromBoard = require('./board').getArticlesFromBoard;
 
 function matchTitle(article, keywords) {
   for (var index = 0; index < keywords.length; index++) {
@@ -28,16 +30,16 @@ function filterArticles(articles, keywords) {
 }
 
 function generateRSS(data) {
-  var feed = new RSS({
+  let articles = data.articles;
+  let feed = new RSS({
     title: data.board,
     description: 'PTT: ' + data.board,
     link: 'https://www.ptt.cc',
     site_url: data.siteUrl,
     generator: 'PttRSS',
-    pubDate: new Date()
+    pubDate: new Date(),
   });
 
-  articles = data.articles;
   // filter by title keywords
   if (data.titleKeywords && data.titleKeywords.length > 0) {
     articles = filterArticles(data.articles, data.titleKeywords);
@@ -61,29 +63,30 @@ router
       return next(Error('Invaild Parameters'));
     }
 
-    var board = req.params.board.toLowerCase();
-    var siteUrl = 'https://www.ptt.cc/bbs/' + board + '/index.html';
-    var push = req.query.push || -99;
-    var titleKeywords = req.query.title || [];
+    const board = req.params.board.toLowerCase();
+    const siteUrl = 'https://www.ptt.cc/bbs/' + board + '/index.html';
+    const push = req.query.push || -99;
+    const minArticleCount = req.query.minArticleCount || 50;
+    let titleKeywords = req.query.title || [];
     if (!Array.isArray(titleKeywords)) {
       titleKeywords = [titleKeywords];
     }
 
     // Get from cache first
-    var obj = cache.get(board);
+    const obj = cache.get(board);
     if (obj) {
 
       // check timestamp duration
-      var duration = Math.abs(obj.timestamp - (new Date()).getTime());
+      let duration = Math.abs(obj.timestamp - (new Date()).getTime());
       if (duration < 1000 * 60 * 5) {
         debug('cached board: %s', board);
         res.set('Content-Type', 'text/xml');
-        var feed = generateRSS({
+        let feed = generateRSS({
           siteUrl: siteUrl,
           board: board,
           articles: obj.articles,
           titleKeywords: titleKeywords,
-          push: push
+          push: push,
         });
 
         return res.send(feed.xml());
@@ -93,32 +96,47 @@ router
       cache.del(board);
     }
 
-
-    // Start crawling board index
-    PTTCrawler(siteUrl, function(err, rows) {
-      if (err) {
-        return next(err);
-      }
-
-      if (!rows) {
-        return next(Error('Fetch failed'));
-      }
-
+    let response = function response(articles) {
       debug('set cache board: %s', board);
-      cache.set(board, {articles: rows, timestamp: (new Date()).getTime()});
+      cache.set(
+        board,
+        {
+          articles: articles,
+          timestamp: (new Date()).getTime(),
+        }
+      );
 
-      var feed = generateRSS({
-        siteUrl: siteUrl,
-        board: board,
-        articles: rows,
-        titleKeywords: titleKeywords,
-        push: push
+      let feed = generateRSS({
+        siteUrl,
+        board,
+        articles,
+        titleKeywords,
+        push,
       });
 
       res.set('Content-Type', 'text/xml');
       res.send(feed.xml());
-    });
+    };
+
+    let articles = [];
+    let getArticlesCB = function(err, nextPageUrl, newArticles) {
+      if (err) return next(err);
+      if (!newArticles) return next(Error('Fetch failed'));
+
+      articles = articles.concat(newArticles);
+      if (articles.length < minArticleCount) {
+        debug('get more articles, current count: %s', articles.length);
+        getArticlesFromBoard(nextPageUrl, getArticlesCB);
+        return;
+      }
+
+      return response(articles);
+    };
+
+    // Start crawling board index
+    getArticlesFromBoard(siteUrl, getArticlesCB);
   });
 
-
-module.exports = router;
+module.exports = {
+  router,
+};
