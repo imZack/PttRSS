@@ -12,12 +12,16 @@ const DATETIME_SELECTOR = '#main-content > div:nth-child(4) > span.article-meta-
 function getArticleFromHtml(html, cb) {
   let $ = cheerio.load(html);
   let article = {
-    content: $('#main-content').text(),
-    datetime: Date.parse($(DATETIME_SELECTOR).text()),
+    description: '',
+    date: Date.parse($(DATETIME_SELECTOR).text()),
     author: $(AUTHOR_SELECTOR).text(),
     boardName: $(BOARDNAME_SELECTOR).text(),
     images: [],
   };
+
+  $('div.article-metaline').remove();
+  $('div.article-metaline-right').remove();
+  article.description = $('#main-content').text();
 
   $('img').each((i, element) => {
     article.images.push($(element).attr('src'));
@@ -48,6 +52,6 @@ module.exports = {
   getArticleFromHtml,
 };
 
-getArticleFromLink('https://www.ptt.cc/bbs/Beauty/M.1451229651.A.394.html', (err, article) => {
-  console.log(article);
-});
+// getArticleFromLink('https://www.ptt.cc/bbs/Beauty/M.1451229651.A.394.html', (err, article) => {
+//   console.log(article);
+// });
