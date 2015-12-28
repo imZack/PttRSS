@@ -1,15 +1,15 @@
 'use strict';
 
-var debug = require('debug')('rss:ptt:index');
-var express = require('express');
-var NodeCache = require('node-cache');
-var RSS = require('rss');
-var router = express.Router();
-var cache = new NodeCache({stdTTL: 60 * 5, checkperiod: 0});
-var articleCache = new NodeCache({stdTTL: 60 * 60, checkperiod: 0});
-
-var getArticlesFromBoard = require('./board').getArticlesFromBoard;
-var getArticleFromLink = require('./article').getArticleFromLink;
+let debug = require('debug')('rss:ptt:index');
+let express = require('express');
+let NodeCache = require('node-cache');
+let Promise = require('bluebird');
+let RSS = require('rss');
+let router = express.Router();
+let cache = new NodeCache({stdTTL: 60 * 5, checkperiod: 0});
+let articleCache = new NodeCache({stdTTL: 60 * 60, checkperiod: 0});
+let getArticlesFromBoard = require('./board').getArticlesFromBoard;
+let getArticleFromLink = require('./article').getArticleFromLink;
 
 function matchTitle(article, keywords) {
   for (var index = 0; index < keywords.length; index++) {
@@ -60,25 +60,26 @@ function generateRSS(data, fetchContent) {
     });
   }
 
-  return new Promise((resolve, reject) => {
-    articles.forEach((articleMeta) => {
-      let article = articleCache.get(articleMeta.url);
-      if (article) {
-        debug('cached article: %s', article.title);
-        feed.item(article);
-        if (feed.items.length === articles.length) return resolve(feed);
-        return;
-      }
+  return Promise.map(articles, (articleMeta) => {
+    let article = articleCache.get(articleMeta.url);
+    if (article) {
+      debug('cached article: %s', article.title);
+      feed.item(article);
+      return;
+    }
 
-      getArticleFromLink(articleMeta.url, (err, article) => {
-        if (err) return reject(err);
+    return getArticleFromLink(articleMeta.url)
+      .then(article => {
         article = Object.assign(articleMeta, article);
         feed.item(article);
         debug('set cache article: %s', article.title, article.url);
         articleCache.set(article.url, article);
-        if (feed.items.length === articles.length) return resolve(feed);
-      });
-    });
+        return;
+      })
+      .delay(100);
+
+  }, {concurrency: 3}).then(() => {
+    return Promise.resolve(feed);
   });
 }
 
@@ -129,33 +130,41 @@ router
         articles,
         titleKeywords,
         push,
-      }, fetchContent)
+      }, fetchContent);
+    };
+
+    let articles = [];
+    let getArticles = function(data) {
+      if (!data.articles) throw Error('Fetch failed');
+
+      articles = articles.concat(data.articles);
+      if (articles.length < minArticleCount) {
+        debug('get more articles, current count: %s', articles.length);
+        return getArticlesFromBoard(data.nextPageUrl)
+          .then(data => {
+            return getArticles(data);
+          });
+      }
+
+      return Promise.resolve(articles);
+    };
+
+    // Start crawling board index
+    getArticlesFromBoard(siteUrl)
+      .then(data => {
+        return getArticles(data);
+      })
+      .then(articles => {
+        return response(articles);
+      })
       .then(feed => {
         res.set('Content-Type', 'text/xml');
         res.send(feed.xml());
         return;
-      }).catch(err => {
+      })
+      .catch(err => {
         return next(err);
       });
-    };
-
-    let articles = [];
-    let getArticlesCB = function(err, nextPageUrl, newArticles) {
-      if (err) return next(err);
-      if (!newArticles) return next(Error('Fetch failed'));
-
-      articles = articles.concat(newArticles);
-      if (articles.length < minArticleCount) {
-        debug('get more articles, current count: %s', articles.length);
-        getArticlesFromBoard(nextPageUrl, getArticlesCB);
-        return;
-      }
-
-      return response(articles);
-    };
-
-    // Start crawling board index
-    getArticlesFromBoard(siteUrl, getArticlesCB);
   });
 
 module.exports = {

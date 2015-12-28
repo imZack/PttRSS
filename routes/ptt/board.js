@@ -1,12 +1,13 @@
 'use strict';
 
-let debug = require('debug')('rss:ptt:board');
 const BASE_URL = require('./config').BASE_URL;
+let Promise = require('bluebird');
+let debug = require('debug')('rss:ptt:board');
 let request = require('./config').request;
 let cheerio = require('cheerio');
 let prevCss = '#action-bar-container > div > div.btn-group.pull-right > a:nth-child(2)';
 
-function getArticlesFromHtml(html, cb) {
+function getArticlesFromHtml(html) {
   let $ = cheerio.load(html);
   let nextPageUrl = BASE_URL + $(prevCss).attr('href');
   let articles = [];
@@ -44,24 +45,13 @@ function getArticlesFromHtml(html, cb) {
     });
 
   debug('get %s articles, next page link: %s', articles.length, nextPageUrl);
-  return cb(null, nextPageUrl, articles);
+  return Promise.resolve({nextPageUrl, articles});
 }
 
-/**
- * Get articles' data from board url
- * @param  {String}   link Start point, usually http://ptt.cc/boardname/index.html
- * @param  {Function} cb   callback(error, nextPageLink, articles)
- * @return {[type]}        None
- */
-function getArticlesFromBoard(link, cb) {
+function getArticlesFromBoard(link) {
   debug('fetching %s', link);
-  request.get(link, function(err, resp, html) {
-    if (err || resp.statusCode !== 200) {
-      debug(err);
-      return cb(err, null, null);
-    }
-
-    getArticlesFromHtml(html, cb);
+  return request.get(link).then(html => {
+    return getArticlesFromHtml(html);
   });
 }
 
