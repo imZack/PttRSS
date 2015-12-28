@@ -67,19 +67,20 @@ router
     const siteUrl = 'https://www.ptt.cc/bbs/' + board + '/index.html';
     const push = req.query.push || -99;
     const minArticleCount = req.query.minArticleCount || 50;
+    const cachedKey = req.originalUrl;
     let titleKeywords = req.query.title || [];
     if (!Array.isArray(titleKeywords)) {
       titleKeywords = [titleKeywords];
     }
 
     // Get from cache first
-    const obj = cache.get(board);
+    const obj = cache.get(cachedKey);
     if (obj) {
 
       // check timestamp duration
       let duration = Math.abs(obj.timestamp - (new Date()).getTime());
       if (duration < 1000 * 60 * 5) {
-        debug('cached board: %s', board);
+        debug('cached board: %s', board, cachedKey);
         res.set('Content-Type', 'text/xml');
         let feed = generateRSS({
           siteUrl: siteUrl,
@@ -92,14 +93,15 @@ router
         return res.send(feed.xml());
       }
 
-      debug('delete cached board:%s timestamp: %s', board, duration);
+      debug('delete cached board:%s timestamp: %s',
+             board, duration, cachedKey);
       cache.del(board);
     }
 
     let response = function response(articles) {
-      debug('set cache board: %s', board);
+      debug('set cache board: %s', board, cachedKey);
       cache.set(
-        board,
+        cachedKey,
         {
           articles: articles,
           timestamp: (new Date()).getTime(),
