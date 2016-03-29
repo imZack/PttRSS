@@ -8,13 +8,13 @@ let cheerio = require('cheerio');
 let prevCss = '#action-bar-container > div > div.btn-group.pull-right > a:nth-child(2)';
 
 function getArticlesFromHtml(html) {
-  let $ = cheerio.load(html);
+  let $$ = cheerio.load(html);
   let nextPageUrl = BASE_URL + $(prevCss).attr('href');
   let articles = [];
 
   $('#main-container > div.r-list-container.bbs-screen > div').each(
-    function(i, element) {
-      let elem = $(element);
+    function (i, element) {
+      let elem = $$(element);
       let push = elem.children('div.nrec').text();
 
       if (push === '') {
@@ -45,14 +45,12 @@ function getArticlesFromHtml(html) {
     });
 
   debug('get %s articles, next page link: %s', articles.length, nextPageUrl);
-  return Promise.resolve({nextPageUrl, articles});
+  return Promise.resolve({ nextPageUrl, articles });
 }
 
 function getArticlesFromBoard(link) {
   debug('fetching %s', link);
-  return request.get(link).then(html => {
-    return getArticlesFromHtml(html);
-  });
+  return request.get(link).then(html => getArticlesFromHtml(html));
 }
 
 module.exports = {

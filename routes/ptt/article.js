@@ -33,9 +33,7 @@ function getArticleFromHtml(html) {
 
 function getArticleFromLink(link) {
   return request.get(link)
-    .then(html => {
-      return getArticleFromHtml(html);
-    });
+    .then(html => getArticleFromHtml(html));
 }
 
 module.exports = {

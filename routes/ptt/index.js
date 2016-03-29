@@ -6,8 +6,8 @@ let NodeCache = require('node-cache');
 let Promise = require('bluebird');
 let RSS = require('rss');
 let router = express.Router();
-let cache = new NodeCache({stdTTL: 60 * 5, checkperiod: 0});
-let articleCache = new NodeCache({stdTTL: 60 * 60, checkperiod: 0});
+let cache = new NodeCache({ stdTTL: 60 * 5, checkperiod: 0 });
+let articleCache = new NodeCache({ stdTTL: 60 * 60, checkperiod: 0 });
 let getArticlesFromBoard = require('./board').getArticlesFromBoard;
 let getArticleFromLink = require('./article').getArticleFromLink;
 
@@ -24,9 +24,7 @@ function matchTitle(article, keywords) {
 }
 
 function filterArticles(articles, keywords) {
-  return articles.filter((article) => {
-    return matchTitle(article, keywords);
-  });
+  return articles.filter((article) => matchTitle(article, keywords));
 }
 
 function generateRSS(data, fetchContent) {
@@ -47,9 +45,7 @@ function generateRSS(data, fetchContent) {
   }
 
   // filter by push counts
-  articles = articles.filter((article) => {
-    return article.push > data.push;
-  });
+  articles = articles.filter(article => article.push > data.push);
 
   if (fetchContent === false) {
     return new Promise((resolve, reject) => {
@@ -78,9 +74,7 @@ function generateRSS(data, fetchContent) {
       })
       .delay(100);
 
-  }, {concurrency: 3}).then(() => {
-    return Promise.resolve(feed);
-  });
+  }, { concurrency: 3 }).then(() => Promise.resolve(feed));
 }
 
 router
@@ -112,16 +106,15 @@ router
         debug('cached board: %s', board, cachedKey);
         res.set('Content-Type', 'text/xml');
         return res.send(feed.xml());
-      }).catch((err) => {
-        return next(err);
-      });
+      })
+      .catch((err) => next(err));
     }
 
     let response = function response(articles) {
       debug('set cache board: %s', board, cachedKey);
       cache.set(
         cachedKey,
-        {articles: articles}
+        { articles: articles }
       );
 
       return generateRSS({
@@ -134,16 +127,14 @@ router
     };
 
     let articles = [];
-    let getArticles = function(data) {
+    let getArticles = function (data) {
       if (!data.articles) throw Error('Fetch failed');
 
       articles = articles.concat(data.articles);
       if (articles.length < minArticleCount) {
         debug('get more articles, current count: %s', articles.length);
         return getArticlesFromBoard(data.nextPageUrl)
-          .then(data => {
-            return getArticles(data);
-          });
+          .then(data => getArticles(data));
       }
 
       return Promise.resolve(articles);
@@ -151,20 +142,14 @@ router
 
     // Start crawling board index
     getArticlesFromBoard(siteUrl)
-      .then(data => {
-        return getArticles(data);
-      })
-      .then(articles => {
-        return response(articles);
-      })
+      .then(data => getArticles(data))
+      .then(articles => response(articles))
       .then(feed => {
         res.set('Content-Type', 'text/xml');
         res.send(feed.xml());
         return;
       })
-      .catch(err => {
-        return next(err);
-      });
+      .catch(err => next(err));
   });
 
 module.exports = {

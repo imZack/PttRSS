@@ -74,8 +74,11 @@ Example output:
 // Single keyword
 curl http://localhost:8000/Gossiping.xml?title=肥宅
 
-// Multiple keywords
+// Multiple keywords (OR)
 curl http://localhost:8000/Gossiping.xml?title=肥宅&title=國民黨
+
+// Push count filter
+curl http://localhost:8000/Gossiping.xml?push=100 only get > 100 push
 ```
 
 Example output:
