@@ -8,13 +8,13 @@ let cheerio = require('cheerio');
 let prevCss = '#action-bar-container > div > div.btn-group.pull-right > a:nth-child(2)';
 
 function getArticlesFromHtml(html) {
-  let $$ = cheerio.load(html);
+  let $ = cheerio.load(html);
   let nextPageUrl = BASE_URL + $(prevCss).attr('href');
   let articles = [];
 
   $('#main-container > div.r-list-container.bbs-screen > div').each(
     function (i, element) {
-      let elem = $$(element);
+      let elem = $(element);
       let push = elem.children('div.nrec').text();
 
       if (push === '') {
