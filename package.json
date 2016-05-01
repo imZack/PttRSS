@@ -4,6 +4,7 @@
   "description": "Self-hosted Ptt RSS service",
   "main": "server.js",
   "scripts": {
+    "start": "PORT=$OPENSHIFT_NODEJS_PORT node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
