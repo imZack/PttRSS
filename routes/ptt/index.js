@@ -8,8 +8,8 @@ let RSS = require('rss');
 let router = express.Router();
 let cache = new NodeCache({ stdTTL: 60 * 5, checkperiod: 0 });
 let articleCache = new NodeCache({ stdTTL: 60 * 60, checkperiod: 0 });
-let getArticlesFromBoard = require('./board').getArticlesFromBoard;
-let getArticleFromLink = require('./article').getArticleFromLink;
+let getArticlesFromLink = require('ptt').getArticlesFromLink;
+let getArticleFromLink = require('ptt').getArticleFromLink;
 
 function matchTitle(article, keywords) {
   for (var index = 0; index < keywords.length; index++) {
@@ -133,7 +133,7 @@ router
       articles = articles.concat(data.articles);
       if (articles.length < minArticleCount) {
         debug('get more articles, current count: %s', articles.length);
-        return getArticlesFromBoard(data.nextPageUrl)
+        return getArticlesFromLink(data.nextPageUrl)
           .then(data => getArticles(data));
       }
 
@@ -141,7 +141,7 @@ router
     };
 
     // Start crawling board index
-    getArticlesFromBoard(siteUrl)
+    getArticlesFromLink(siteUrl)
       .then(data => getArticles(data))
       .then(articles => response(articles))
       .then(feed => {
