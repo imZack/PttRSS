@@ -23,8 +23,8 @@ function matchTitle(article, keywords) {
   return false;
 }
 
-function filterArticles(articles, keywords) {
-  return articles.filter((article) => matchTitle(article, keywords));
+function filterArticles(articles, keywords, exclude=false) {
+  return articles.filter((article) => exclude ^ matchTitle(article, keywords));
 }
 
 function generateRSS(data, fetchContent) {
@@ -42,6 +42,11 @@ function generateRSS(data, fetchContent) {
   // filter by title keywords
   if (data.titleKeywords && data.titleKeywords.length > 0) {
     articles = filterArticles(data.articles, data.titleKeywords);
+  }
+
+  if (data.exTitleKeywords && data.exTitleKeywords.length > 0) {
+    debug(data.exTitleKeywords);
+    articles = filterArticles(data.articles, data.exTitleKeywords, true);
   }
 
   // filter by push counts
@@ -92,6 +97,11 @@ router
       titleKeywords = [titleKeywords];
     }
 
+    let exTitleKeywords = req.query.extitle || [];
+    if (!Array.isArray(exTitleKeywords)) {
+      exTitleKeywords = [exTitleKeywords];
+    }
+
     // Get from cache first
     const obj = cache.get(cachedKey);
     if (obj) {
@@ -99,7 +109,8 @@ router
         siteUrl: siteUrl,
         board: board,
         articles: obj.articles,
-        titleKeywords: titleKeywords,
+        titleKeywords,
+        exTitleKeywords,
         push: push,
       }, fetchContent)
       .then((feed) => {
@@ -122,6 +133,7 @@ router
         board,
         articles,
         titleKeywords,
+        exTitleKeywords,
         push,
       }, fetchContent);
     };
