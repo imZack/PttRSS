@@ -13,7 +13,8 @@ let getArticleFromLink = require('ptt').getArticleFromLink;
 
 function matchTitle(article, keywords) {
   for (var index = 0; index < keywords.length; index++) {
-    if (article.title.indexOf(keywords[index]) !== -1) {
+    if (article.title.toLowerCase().indexOf(
+        keywords[index].toLowerCase()) !== -1) {
       debug('title: %s matched keyword: %s', article.title, keywords[index]);
       return true;
     }
