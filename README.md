@@ -77,6 +77,9 @@ curl http://localhost:8000/Gossiping.xml?title=肥宅
 // Multiple keywords (OR)
 curl http://localhost:8000/Gossiping.xml?title=肥宅&title=國民黨
 
+// Multiple exclude keywords
+curl http://localhost:8000/Gossiping.xml?extitle=肥宅
+
 // Push count filter
 curl http://localhost:8000/Gossiping.xml?push=100 only get > 100 push
 ```
