@@ -36,15 +36,17 @@ function generateRSS(data, fetchContent) {
     generator: 'PttRSS',
     pubDate: new Date(),
   });
+  const titleKeywords = data.titleKeywords;
+  const exTitleKeywords = data.exTitleKeywords;
 
   // filter by title keywords
-  if (data.titleKeywords && data.titleKeywords.length > 0) {
-    articles = filterArticles(data.articles, data.titleKeywords);
+  if (titleKeywords && titleKeywords.length > 0) {
+    articles = filterArticles(articles, titleKeywords);
   }
 
-  if (data.exTitleKeywords && data.exTitleKeywords.length > 0) {
-    debug(data.exTitleKeywords);
-    articles = filterArticles(data.articles, data.exTitleKeywords, true);
+  if (exTitleKeywords && exTitleKeywords.length > 0) {
+    debug(exTitleKeywords);
+    articles = filterArticles(articles, exTitleKeywords, true);
   }
 
   // filter by push counts
