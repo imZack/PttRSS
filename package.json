@@ -32,8 +32,8 @@
     "rss": "^1.1.1"
   },
   "devDependencies": {
-    "eslint": "^5.16.0",
-    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint": "^10.0.3",
+    "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.17.3"
   }
 }
